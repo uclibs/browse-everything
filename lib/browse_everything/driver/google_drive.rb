@@ -18,47 +18,42 @@ module BrowseEverything
       end
 
       def contents(path='')
-        default_params = { }
         page_token = nil
         files = []
         begin
-          unless path.blank?
-            default_params[:q] = "'#{path}' in parents"
-          end
-          unless page_token.blank?
-            default_params[:pageToken] = page_token
-          end
+          default_params = execute_params(path: path, page_token: page_token)
           api_result = oauth_client.execute( api_method: drive.files.list, parameters: default_params )
           response = JSON.parse(api_result.response.body)
           page_token = response["nextPageToken"]
-          response["items"].select do |file|
-            path.blank? ? (file["parents"].blank? or file["parents"].any?{|p| p["isRoot"] }) : true
-          end.each do |file|
-            files << details(file, path)
+          response["items"].each do |file|
+            if path.blank?
+              if file["parents"].blank? or file["parents"].any?{|p| p["isRoot"] }
+                files << details(file, path)
+              end
+            else
+              files << details(file, path)
+            end
           end
         end while !page_token.blank?
         files.compact
       end
 
       def details(file, path='')
-        if file["downloadUrl"] or file["mimeType"] == "application/vnd.google-apps.folder"
-          BrowseEverything::FileEntry.new(
-            file["id"],
-            "#{self.key}:#{file["id"]}",
-            file["title"],
-            (file["fileSize"] || 0),
-            Time.parse(file["modifiedDate"]),
-            file["mimeType"] == "application/vnd.google-apps.folder",
-            file["mimeType"] == "application/vnd.google-apps.folder" ?
-                                  "directory" :
-                                  file["mimeType"]
-          )
-        end
+        BrowseEverything::FileEntry.new(
+          file["id"],
+          "#{self.key}:#{file["id"]}",
+          file["title"],
+          (file["fileSize"] || 0),
+          Time.parse(file["modifiedDate"]),
+          file["mimeType"] == "application/vnd.google-apps.folder",
+          file["mimeType"] == "application/vnd.google-apps.folder" ?
+                                "directory" :
+                                file["mimeType"]
+        ) if file["downloadUrl"] or file["mimeType"] == "application/vnd.google-apps.folder"
       end
 
       def link_for(id)
-        api_method = drive.files.get
-        api_result = oauth_client.execute(api_method: api_method, parameters: {fileId: id})
+        api_result = oauth_client.execute(api_method: drive.files.get, parameters: {fileId: id})
         download_url = JSON.parse(api_result.response.body)["downloadUrl"]
         auth_header = "Authorization: Bearer #{oauth_client.authorization.access_token.to_s}"
         [download_url,auth_header]
@@ -75,6 +70,17 @@ module BrowseEverything
       def connect(params, data)
         oauth_client.authorization.code = params[:code]
         @token = oauth_client.authorization.fetch_access_token!
+      end
+
+      def execute_params(opts={})
+        params = {}
+        unless opts[:path].blank?
+          params[:q] = "'#{opts[:path]}' in parents"
+        end
+        unless opts[:page_token].blank?
+          params[:pageToken] = opts[:page_token]
+        end
+        params
       end
 
       def drive
