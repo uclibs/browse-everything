@@ -15,26 +15,30 @@ module BrowseEverything
       end
 
       def contents(path='')
-        path.sub!(/^[\/.]+/,'')
-        result = []
-        unless path.empty?
-          result << BrowseEverything::FileEntry.new(
-            Pathname(path).join('..'),
-            '', '..', 0, Time.now, true
-          )
+        begin
+          path.sub!(/^[\/.]+/,'')
+          result = []
+          unless path.empty?
+            result << BrowseEverything::FileEntry.new(
+              Pathname(path).join('..'),
+              '', '..', 0, Time.now, true
+            )
+          end
+          result += client.metadata(path)['contents'].collect do |info|
+            path = info['path']
+            BrowseEverything::FileEntry.new(
+              path,
+              [self.key,path].join(':'),
+              File.basename(path),
+              info['size'],
+              Time.parse(info['modified']),
+              info['is_dir']
+            )
+          end
+          result
+        rescue DropBoxError
+          raise BrowseEverything::NotAuthorized
         end
-        result += client.metadata(path)['contents'].collect do |info|
-          path = info['path']
-          BrowseEverything::FileEntry.new(
-            path,
-            [self.key,path].join(':'),
-            File.basename(path),
-            info['size'],
-            Time.parse(info['modified']),
-            info['is_dir']
-          )
-        end
-        result
       end
 
       def link_for(path)
@@ -50,9 +54,13 @@ module BrowseEverything
       end
 
       def connect(params,data)
-        @csrf = data
-        @token, user, state = auth_flow.finish(params)
-        @token
+        begin
+          @csrf = data
+          @token, user, state = auth_flow.finish(params)
+          @token
+        rescue DropboxOAuth2Flow::NotApprovedError
+          @token = nil
+        end
       end
 
       def authorized?

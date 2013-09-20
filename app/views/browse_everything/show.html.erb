@@ -1,9 +1,2 @@
-<% if provider.present? %>
-  <% if provider.authorized? %>
-    <%= render 'files' %>
-  <% else %>
-    <%= render 'auth' %>
-  <% end %>
-
-<% end %>
+<%= render_files %>
 

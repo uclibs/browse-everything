@@ -8,4 +8,17 @@ module BrowseEverythingHelper
     fields.join("\n").html_safe
   end
 
+  def render_files
+    if provider.present?
+      if provider.authorized?
+        begin
+          render 'files' 
+        rescue BrowseEverything::NotAuthorized
+          render 'auth'
+        end
+      else
+        render 'auth'
+      end
+    end
+  end
 end
