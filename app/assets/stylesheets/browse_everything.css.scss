@@ -3,6 +3,9 @@
 @import "bootstrap";
 @import "bootstrap-responsive";
 @import "font-awesome";
+@import "flexbox";
+
+//$flex-legacy-enabled: true;
 
 @mixin border-highlight($color) {
   $bl: 3;
@@ -36,7 +39,7 @@
   background-color: lightgray;
 }
 
-.ev-providers, .ev-files {
+.ev-providers {
   li { @include ev-link; }
   .ev-selected {
     @include border-highlight(black);
@@ -45,6 +48,54 @@
 
 .modal-body {
   overflow: hidden;
+}
+
+.ev-file-list {
+  @include display-flex();
+  &.ev-icon {
+    @include flex-flow(row);
+    @include flex-wrap(wrap);
+
+    .ev-entry {
+      margin: 2px 2px;
+      @include ev-link;
+      &.ev-selected { @include border-highlight(black); }
+      @include display-flex();
+      @include flex-flow(column);
+    }
+
+    .ev-entry-attr {
+      @include flex-flow(row);
+      white-space: nowrap;
+      overflow: hidden;
+      &.ev-entry-size { @include flex-grow(1); }
+      &.ev-entry-date { @include flex-grow(1); }
+      &.ev-entry-name { @include flex-grow(1); }
+    }
+  }
+
+  &.ev-details {
+    @include flex-flow(column);
+
+    .ev-entry {
+      @include ev-link;
+      &.ev-selected { @include border-highlight(black); }
+      @include display-flex();
+      @include flex-flow(row);
+    }
+
+    .ev-entry-attr {
+      @include flex-flow(row);
+      width: 10px;
+      &.ev-entry-size { @include flex-grow(1); }
+      &.ev-entry-date { @include flex-grow(2); }
+      &.ev-entry-name { @include flex-grow(3); }
+    }
+  }
+
+  // Directories first
+  .ev-container: { @include order(0); }
+  .ev-file:      { @include order(1); }
 }
 
 .ev-files {
