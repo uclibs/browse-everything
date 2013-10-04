@@ -30,6 +30,10 @@
   }
 }
 
+.ev-browser, .ev-files {
+  height: 100%;
+}
+
 .ev-body {
   padding: 0;
 }
@@ -67,7 +71,7 @@
     .ev-entry-attr {
       @include flex-flow(row);
       white-space: nowrap;
-      overflow: hidden;
+      text-overflow: ellipsis;
       &.ev-entry-size { @include flex-grow(1); }
       &.ev-entry-date { @include flex-grow(1); }
       &.ev-entry-name { @include flex-grow(1); }
