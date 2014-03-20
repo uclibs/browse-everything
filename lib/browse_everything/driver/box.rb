@@ -25,7 +25,7 @@ module BrowseEverything
               '', '..', 0, Time.now, true
           )
         end
-        folder = path.empty? ? box_client.root_folder : box_client.folder(path)
+        folder = box_client { |c| path.empty? ? c.root_folder : c.folder(path) }
         result += folder.items.collect do |f|
         BrowseEverything::FileEntry.new(
             File.join(path,f.name),#id here
@@ -40,9 +40,9 @@ module BrowseEverything
       end
 
       def link_for(path)
-        file = box_client.file(path)
+        file = box_client { |c| c.file(path) }
         download_url = file.download_url
-        auth_header = {'Authorization' => "Bearer #{@token}"}
+        auth_header = {'Authorization' => "Bearer #{@token.token}"}
         extras = { auth_header: auth_header, expires: 1.hour.from_now , file_name:file.name }
         [download_url,extras]
       end
@@ -57,11 +57,11 @@ module BrowseEverything
 
       def authorized?
         #false
-        @token.present?
+        @token.present? and @token.token.present?
       end
 
       def connect(params,data)
-        @token = oauth_client.get_access_token(params[:code]).token
+        @token = oauth_client.get_access_token(params[:code])
       end
 
       private
@@ -79,9 +79,11 @@ module BrowseEverything
         session = RubyBox::Session.new({
                                            client_id: config[:client_id],
                                            client_secret: config[:client_secret],
-                                           access_token: @token
+                                           access_token: @token.token
                                        })
-        RubyBox::Client.new(session)
+        result = yield(RubyBox::Client.new(session))
+        @token = session.refresh_token(@token.refresh_token)
+        result
       end
 
     end
