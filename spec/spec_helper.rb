@@ -9,6 +9,8 @@ require 'engine_cart'
 require 'capybara/rails'
 require 'capybara/rspec'
 require 'support/rake'
+require 'coveralls'
+require 'kaltura'
 
 EngineCart.load_application!
 
@@ -20,6 +22,7 @@ VCR.configure do |c|
   c.cassette_library_dir = 'spec/fixtures/vcr_cassettes'
   c.hook_into :webmock
   c.configure_rspec_metadata!
+  c.ignore_localhost = true
 end
 
 RSpec.configure do |config|
@@ -57,7 +60,12 @@ module BrowserConfigHelper
       "sky_drive" => {
         client_id: "SkyDriveClientId",
         client_secret: "SkyDriveClientSecret"
-      }
+      },
+      "kaltura" => {
+        partner_id: "KalturaClientId",
+        administrator_secret: "KalturaAdminSecret",
+        service_url: "KalturaServiceUrl"
+      } 
     })
   end
 

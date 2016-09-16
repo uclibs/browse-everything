@@ -15,6 +15,7 @@ module BrowseEverything
     autoload :SkyDrive,    'browse_everything/driver/sky_drive'
     autoload :Box,         'browse_everything/driver/box'
     autoload :GoogleDrive, 'browse_everything/driver/google_drive'
+    autoload :Kaltura,     'browse_everything/driver/kaltura'
   end
 
   class << self
