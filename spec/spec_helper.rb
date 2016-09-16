@@ -10,6 +10,7 @@ require 'capybara/rails'
 require 'capybara/rspec'
 require 'support/rake'
 require 'coveralls'
+require 'kaltura'
 
 Coveralls.wear!
 EngineCart.load_application!
@@ -23,6 +24,7 @@ VCR.configure do |c|
   c.hook_into :webmock
   c.configure_rspec_metadata!
   c.ignore_localhost = true
+  c.default_cassette_options = { :record => :once }
 end
 
 Capybara.default_driver = :rack_test      # This is a faster driver
@@ -64,7 +66,12 @@ module BrowserConfigHelper
       "sky_drive" => {
         client_id: "SkyDriveClientId",
         client_secret: "SkyDriveClientSecret"
-      }
+      },
+      "kaltura" => {
+        partner_id: "KalturaClientId",
+        administrator_secret: "KalturaAdminSecret",
+        service_url: "KalturaServiceUrl"
+      } 
     })
   end
 

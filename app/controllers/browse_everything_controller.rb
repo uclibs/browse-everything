@@ -7,6 +7,9 @@ class BrowseEverythingController < ActionController::Base
   after_filter {session["#{provider_name}_token"] = provider.token unless provider.nil? }
   
   def index
+    if #{provider_name} == 'kaltura'
+      $current_user = warden.user.email.split("@")[0]
+    end
     render :layout => !request.xhr?
   end
 

@@ -27,6 +27,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "bootstrap-sass"
   spec.add_dependency "font-awesome-rails"
   spec.add_dependency "google-api-client", "~> 0.8.6"
+  spec.add_dependency "kaltura"
   spec.add_dependency "httparty"
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "rspec-rails"
@@ -44,4 +45,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "jasmine", '~> 2.3'
   spec.add_development_dependency "coveralls"
   spec.add_development_dependency "poltergeist", "~> 1.10"
+  spec.add_development_dependency "rack", '1.5.5'
+
 end
