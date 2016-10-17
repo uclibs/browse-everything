@@ -43,7 +43,8 @@ class BrowseEverythingController < ActionController::Base
     @auth_link ||= if provider.present?
       link, data = provider.auth_link
       session["#{provider_name}_data"] = data
-      "#{link}&state=#{provider.key}"
+      link = "#{link}&state=#{provider.key}" unless link.include?("state")
+      link
     else
       nil
     end
