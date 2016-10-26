@@ -15,15 +15,20 @@ module BrowseEverything
 
       def contents(path='')
         result = []
-        @options = { :filter => { :creatorIdEqual => $current_user } }
+        @options = { :filter => { :creatorIdEqual => $current_user, :orderBy => "+name"  }, :pager => {:pageSize => 1000}  }
         @session = ::Kaltura::Session.start
-        @@entries = ::Kaltura::MediaEntry.list(@options)
-        @@entries.each do |item|
-          item.location = item.downloadUrl.sub('https:', 'kaltura:')
-          item.mtime = Time.at(item.updatedAt.to_i)
-          result.push(item) 
+        begin
+          @@entries = ::Kaltura::MediaEntry.list(@options)
+          @@entries.each do |item|
+            item.location = item.downloadUrl.sub('https:', 'kaltura:')
+            item.mtime = Time.at(item.updatedAt.to_i)
+            item.duration = item.duration + " sec"
+            result.push(item) 
+          end
+          result
+        rescue
+          result
         end
-        result
       end
 
       def link_for(path)
