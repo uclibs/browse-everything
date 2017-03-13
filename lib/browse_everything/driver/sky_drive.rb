@@ -20,7 +20,7 @@ module BrowseEverything
         end
       end
 
-      def contents(path = '')
+      def contents(path = '', _user = '')
         result = []
         token_obj = rehydrate_token
         client = Skydrive::Client.new(token_obj)

@@ -39,11 +39,15 @@
   <% end %>
 
   <td role="gridcell" class="ev-file-size">
-    <%= number_to_human_size(file.size).sub(/Bytes/,'bytes') %>
+    <% unless provider_name == 'kaltura'%>
+      <%= number_to_human_size(file.size).sub(/Bytes/,'bytes') %>
+    <% end %>
   </td>
 
   <td role="gridcell" class="ev-file-kind">
-    <%= file.type %>
+    <% unless provider_name == 'kaltura'%>
+      <%= file.type %>
+    <% end %>
   </td>
 
   <td role="gridcell" class="ev-file-date">

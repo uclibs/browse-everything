@@ -4,8 +4,6 @@ class BrowseEverythingController < ActionController::Base
   layout 'browse_everything'
   helper BrowseEverythingHelper
 
-  protect_from_forgery with: :exception
-
   after_action { session["#{provider_name}_token"] = provider.token unless provider.nil? }
 
   def index
@@ -13,10 +11,15 @@ class BrowseEverythingController < ActionController::Base
   end
 
   def show
+    if provider_name == 'kaltura'
+      $current_user = warden.user.email.split("@")[0]
+    end
+
     render layout: !request.xhr?
   end
 
   def auth
+    code = params[:code]
     session["#{provider_name}_token"] = provider.connect(params, session["#{provider_name}_data"])
   end
 
@@ -43,7 +46,7 @@ class BrowseEverythingController < ActionController::Base
                      session["#{provider_name}_data"] = data
                      link = "#{link}&state=#{provider.key}" unless link.to_s.include?('state')
                      link
-                   end # else nil, implicitly
+                   end
   end
 
   def browser

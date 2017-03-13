@@ -17,7 +17,7 @@ module BrowseEverything
         end
       end
 
-      def contents(path = '')
+      def contents(path = '', _user = '')
         return to_enum(:contents, path) unless block_given?
         default_params = {
           order_by: 'folder,modifiedTime desc,name',

@@ -31,6 +31,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'signet'
   spec.add_dependency 'httparty'
   spec.add_dependency 'aws-sdk'
+  spec.add_dependency 'kaltura', '0.1.1'
   spec.add_development_dependency 'rspec', '~> 3.0'
   spec.add_development_dependency 'rspec-rails'
   spec.add_development_dependency 'rspec-its'

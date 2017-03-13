@@ -13,7 +13,7 @@
         <th role="columnheader">Modified</th>
       </tr>
     </thead>
-    <% provider.contents(browse_path).each_with_index do |file, index| %>
+      <% provider.contents(browse_path).each_with_index do |file, index| %>
       <% next if file.relative_parent_path? %>
       <%= render :partial => 'file', :locals => { :file => file, :index => index,
         :path => browse_everything_engine.contents_path(provider_name, file.id), :parent => params[:parent] } %>

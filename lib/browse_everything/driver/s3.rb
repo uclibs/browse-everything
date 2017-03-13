@@ -20,7 +20,7 @@ module BrowseEverything
         raise BrowseEverything::InitializationError, "Amazon S3 driver requires #{CONFIG_KEYS.join(',')}"
       end
 
-      def contents(path = '')
+      def contents(path = '', _user = '')
         path = File.join(path, '') unless path.empty?
         result = []
         listing = client.list_objects(bucket: config[:bucket], delimiter: '/', prefix: path)

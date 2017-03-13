@@ -18,7 +18,7 @@ module BrowseEverything
         end
       end
 
-      def contents(path = '')
+      def contents(path = '', _user = '')
         path.sub!(/^[\/.]+/, '')
         result = []
         unless path.empty?
