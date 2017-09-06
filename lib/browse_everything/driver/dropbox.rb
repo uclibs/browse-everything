@@ -3,38 +3,43 @@ require 'dropbox_sdk'
 module BrowseEverything
   module Driver
     class Dropbox < Base
+      CONFIG_KEYS = [:app_key, :app_secret].freeze
 
       def icon
         'dropbox'
       end
 
       def validate_config
-        unless [:app_key,:app_secret].all? { |key| config[key].present? }
-          raise BrowseEverything::InitializationError, "Dropbox driver requires :app_key and :app_secret"
-        end
+        return if CONFIG_KEYS.all? { |key| config[key].present? }
+        raise BrowseEverything::InitializationError, "Dropbox driver requires #{CONFIG_KEYS.inspect}"
       end
 
-      def contents(path='')
-        path.sub!(/^[\/.]+/,'')
-        result = []
-        unless path.empty?
-          result << BrowseEverything::FileEntry.new(
-            Pathname(path).join('..'),
-            '', '..', 0, Time.now, true
-          )
-        end
-        result += client.metadata(path)['contents'].collect do |info|
-          path = info['path']
-          BrowseEverything::FileEntry.new(
-            path,
-            [self.key,path].join(':'),
-            File.basename(path),
-            info['bytes'],
-            Time.parse(info['modified']),
-            info['is_dir']
-          )
-        end
+      # @return [Array<BrowseEverything::FileEntry>]
+      def contents(path = '')
+        path.sub!(%r{ /^[\/.]+/}, '')
+        result = add_directory_entry(path)
+        result += client.metadata(path)['contents'].collect { |info| make_file_entry(info) }
         result
+      end
+
+      def add_directory_entry(path)
+        return [] if path.empty?
+        [BrowseEverything::FileEntry.new(
+          Pathname(path).join('..'),
+          '', '..', 0, Time.zone.now, true
+        )]
+      end
+
+      def make_file_entry(info)
+        path = info['path']
+        BrowseEverything::FileEntry.new(
+          path,
+          [key, path].join(':'),
+          File.basename(path),
+          info['bytes'],
+          Time.zone.parse(info['modified']),
+          info['is_dir']
+        )
       end
 
       def link_for(path)
@@ -46,12 +51,12 @@ module BrowseEverything
       end
 
       def auth_link
-        [ auth_flow.start('dropbox'), @csrf ]
+        [auth_flow.start('dropbox'), @csrf]
       end
 
-      def connect(params,data)
+      def connect(params, data)
         @csrf = data
-        @token, user, state = auth_flow.finish(params)
+        @token, _user, _state = auth_flow.finish(params)
         @token
       end
 
@@ -60,15 +65,15 @@ module BrowseEverything
       end
 
       private
-      def auth_flow
-        @csrf ||= {}
-        DropboxOAuth2Flow.new(config[:app_key], config[:app_secret], callback.to_s,@csrf,'token')
-      end
 
-      def client
-        DropboxClient.new(token)
-      end
+        def auth_flow
+          @csrf ||= {}
+          DropboxOAuth2Flow.new(config[:app_key], config[:app_secret], callback.to_s, @csrf, 'token')
+        end
+
+        def client
+          DropboxClient.new(token)
+        end
     end
-
   end
 end

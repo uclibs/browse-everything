@@ -1,0 +1,34 @@
+inherit_from: .rubocop_todo.yml
+
+AllCops:
+  TargetRubyVersion: 2.1
+  DisplayCopNames: true
+  Include:
+    - '**/Rakefile'
+  Exclude:
+    - 'vendor/**/*'
+
+Rails:
+  Enabled: true
+
+Metrics/ClassLength:
+  Max: 130
+  
+# Configuration parameters: AllowURI, URISchemes.
+Metrics/LineLength:
+  Max: 400
+
+RSpec/NestedGroups:
+  Enabled: false
+
+RSpec/FilePath:
+  Enabled: false
+
+RSpec/LeadingSubject:
+  Enabled: false
+
+Style/NumericLiterals:
+  MinDigits: 7
+
+Style/IndentationConsistency:
+  EnforcedStyle: rails

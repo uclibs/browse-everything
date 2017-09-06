@@ -5,8 +5,8 @@ module BrowseEverything
 
       attr_reader :config, :name
       attr_accessor :token
-      
-      def initialize(config,session_info={})
+
+      def initialize(config, _session_info = {})
         @config = config
         validate_config
       end
@@ -26,11 +26,11 @@ module BrowseEverything
       def validate_config
       end
 
-      def contents(path)
+      def contents(_path)
         []
       end
 
-      def details(path)
+      def details(_path)
         nil
       end
 
@@ -42,11 +42,12 @@ module BrowseEverything
         false
       end
 
+      # @return [Array{URI,Object}] 2 elements: the URI, and session data to store under "#{provider_name}_data"
       def auth_link
         []
       end
 
-      def connect(params,data)
+      def connect(_params, _data)
         nil
       end
 
@@ -59,9 +60,8 @@ module BrowseEverything
         # remove the script_name parameter from the url_options since that is causing issues
         #   with the route not containing the engine path in rails 4.2.0
         def callback_options
-          config[:url_options].reject {|k,v| k == :script_name}
+          config[:url_options].reject { |k, _v| k == :script_name }
         end
-
     end
   end
 end

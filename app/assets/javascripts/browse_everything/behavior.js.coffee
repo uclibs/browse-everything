@@ -7,7 +7,7 @@ $ ->
 
     dialog.modal
       backdrop: 'static'
-      show:     false 
+      show:     false
     ctx =
       opts: $.extend(true, {}, options)
       callbacks:
@@ -15,12 +15,12 @@ $ ->
         done: $.Callbacks()
         cancel: $.Callbacks()
         fail: $.Callbacks()
-    ctx.callback_proxy = 
+    ctx.callback_proxy =
       show:   (func) -> ctx.callbacks.show.add(func)   ; return this
       done:   (func) -> ctx.callbacks.done.add(func)   ; return this
       cancel: (func) -> ctx.callbacks.cancel.add(func) ; return this
       fail:   (func) -> ctx.callbacks.fail.add(func)   ; return this
-    $(obj).data('context',ctx)
+    $(obj).data('ev-state',ctx)
     ctx
 
   toHiddenFields = (data) ->
@@ -42,7 +42,7 @@ $ ->
     $('input.ev-url').each () ->
       if this.value == $(row).data('ev-location')
         result = true
-    return result 
+    return result
 
   toggleFileSelect = (row) ->
     row.toggleClass('ev-selected')
@@ -57,11 +57,15 @@ $ ->
     file_location = row.data('ev-location')
     hidden_input = $("<input type='hidden' class='ev-url' name='selected_files[]'/>").val(file_location)
     target_form.append(hidden_input)
+    unless $(row).find('.ev-select-file').prop('checked')
+      $(row).find('.ev-select-file').prop('checked', true)
 
   unselectFile = (row) ->
     target_form = $('form.ev-submit-form')
     file_location = row.data('ev-location')
     $("form.ev-submit-form input[value='#{file_location}']").remove()
+    if $(row).find('.ev-select-file').prop('checked')
+        $(row).find('.ev-select-file').prop('checked', false)
 
   updateFileCount = () ->
     count = $('input.ev-url').length
@@ -114,8 +118,7 @@ $ ->
         table.treetable("unloadBranch", node)
       onNodeExpand: ->
         node = this
-        $('body').css('cursor','wait')
-        $("html").addClass("wait")
+        startWait()
         size = $(node.row).find('td.ev-file-size').text().trim()
         start = 1
         increment = 1
@@ -144,6 +147,7 @@ $ ->
     set_size = (selector, pct) ->
       $(selector, table).width(full_width * pct).css('width',full_width * pct).css('max-width',full_width * pct)
     set_size '.ev-file', 0.4
+    set_size '.ev-container', 0.4
     set_size '.ev-size', 0.1
     set_size '.ev-kind', 0.3
     set_size '.ev-date', 0.2
@@ -154,8 +158,8 @@ $ ->
       url: $('a.ev-link',node.row).attr('href')
       data:
         parent: node.row.data('tt-id')
-        accept: dialog.data('context').opts.accept
-        context: dialog.data('context').opts.context
+        accept: dialog.data('ev-state').opts.accept
+        context: dialog.data('ev-state').opts.context
     .done (html) ->
       setProgress('100')
       clearInterval progressIntervalID
@@ -168,61 +172,72 @@ $ ->
         selectAll(rows)
     .always ->
         clearInterval progressIntervalID
-        $('body').css('cursor','default')
-        $("html").removeClass("wait")
+        stopWait()
 
   setProgress = (done)->
-    $('#loading_progress').css('width',done+'%')
-    $('#loading_progress').html(done+'% complete')
-    $('#loading_progress').attr('aria-valuenow', done)
+    $('.loading-text').text(done+'% complete')
 
   refreshFiles = ->
     $('.ev-providers select').change()
-    
+
+  startWait = ->
+    $('.loading-progress').removeClass("hidden")
+    $('body').css('cursor','wait')
+    $("html").addClass("wait")
+    $(".ev-browser").addClass("loading")
+    $('.ev-submit').attr('disabled', true)
+
+  stopWait = ->
+    $('.loading-progress').addClass("hidden")
+    $('body').css('cursor','default')
+    $("html").removeClass("wait")
+    $(".ev-browser").removeClass("loading")
+    $('.ev-submit').attr('disabled', false)
+
   $(window).on('resize', -> sizeColumns($('table#file-list')))
 
   $.fn.browseEverything = (options) ->
-    ctx = $(this).data('context')
+    ctx = $(this).data('ev-state')
     options = $(this).data() unless (ctx? or options?)
     if options?
       ctx = initialize(this[0], options)
       $(this).click () ->
-        dialog.data('context',ctx)
-        dialog.load ctx.opts.route, () -> 
+        dialog.data('ev-state',ctx)
+        dialog.load ctx.opts.route, () ->
           setTimeout refreshFiles, 500
           ctx.callbacks.show.fire()
           dialog.modal('show')
 
     if ctx
       ctx.callback_proxy
-    else 
-      { 
+    else
+      {
         show: -> this
         done: -> this
         cancel: -> this
-        fail: -> this 
+        fail: -> this
       }
 
   $.fn.browseEverything.toggleCheckbox = (box) ->
     if box.value == "0"
       $(box).prop('value', "1")
     else
-      $(box).prop('value', "0") 
+      $(box).prop('value', "0")
 
   $(document).on 'ev.refresh', (event) -> refreshFiles()
-    
+
   $(document).on 'click', 'button.ev-cancel', (event) ->
     event.preventDefault()
-    dialog.data('context').callbacks.cancel.fire()
+    dialog.data('ev-state').callbacks.cancel.fire()
     $('.ev-browser').modal('hide')
 
   $(document).on 'click', 'button.ev-submit', (event) ->
     event.preventDefault()
     $(this).button('loading')
-    $('body').css('cursor','wait')
+    startWait()
     main_form = $(this).closest('form')
     resolver_url = main_form.data('resolver')
-    ctx = dialog.data('context')
+    ctx = dialog.data('ev-state')
     $(main_form).find('input[name=context]').val(ctx.opts.context)
     $.ajax resolver_url,
       type: 'POST'
@@ -239,7 +254,7 @@ $ ->
       $('body').css('cursor','default')
       $('.ev-browser').modal('hide')
       $('#browse-btn').focus()
-    
+
   $(document).on 'click', '.ev-files .ev-container a.ev-link', (event) ->
     event.stopPropagation()
     event.preventDefault()
@@ -250,12 +265,12 @@ $ ->
 
   $(document).on 'change', '.ev-providers select', (event) ->
     event.preventDefault()
-    $('body').css('cursor','wait')
-    $.ajax 
+    startWait()
+    $.ajax
       url: $(this).val(),
       data:
-        accept: dialog.data('context').opts.accept
-        context: dialog.data('context').opts.context
+        accept: dialog.data('ev-state').opts.accept
+        context: dialog.data('ev-state').opts.context
     .done (data) ->
       $('.ev-files').html(data)
       indicateSelected();
@@ -267,7 +282,7 @@ $ ->
       else
         $('.ev-files').html(xhr.responseText)
     .always ->
-      $('body').css('cursor','default')
+      stopWait()
 
   $(document).on 'click', '.ev-providers a', (event) ->
     $('.ev-providers li').removeClass('ev-selected')
@@ -300,11 +315,16 @@ $ ->
     else
       selectChildRows(row, action)
 
+  $(document).on 'change', 'input.ev-select-file', (event) ->
+    event.stopPropagation()
+    event.preventDefault()
+    toggleFileSelect($(this).closest('tr'))
+
 
 auto_toggle = ->
   triggers = $('*[data-toggle=browse-everything]')
-  triggers.each () -> 
-    ctx = $(this).data('context')
+  triggers.each () ->
+    ctx = $(this).data('ev-state')
     $(this).browseEverything($(this).data()) unless ctx?
 
 if Turbolinks? && Turbolinks.supported

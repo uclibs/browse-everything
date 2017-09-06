@@ -1,76 +1,76 @@
-require File.expand_path('../../spec_helper',__FILE__)
-
 include BrowserConfigHelper
 
 describe BrowseEverything::Browser do
-  let(:file_config) {
+  let(:file_config) do
     {
       file_system: { home: '/file/config/home' },
       dropbox:    { app_key: 'FileConfigKey', app_secret: 'FileConfigSecret' }
     }.to_yaml
-  }
+  end
 
-  let(:global_config) {
+  let(:global_config) do
     {
       file_system: { home: '/global/config/home' },
       dropbox:    { app_key: 'GlobalConfigKey', app_secret: 'GlobalConfigSecret' }
     }
-  }
+  end
 
-  let(:local_config) {
+  let(:local_config) do
     {
       file_system: { home: '/local/config/home' },
       dropbox:    { app_key: 'LocalConfigKey', app_secret: 'LocalConfigSecret' },
       url_options: url_options
     }
-  }
+  end
 
-  describe "file config" do
-    before(:each) { allow(File).to receive(:read).and_return(file_config) }
-    subject { BrowseEverything::Browser.new(url_options) }
+  describe 'file config' do
+    let(:browser) { described_class.new(url_options) }
 
-    it "should have 2 providers" do
-      expect(subject.providers.keys).to eq([:file_system, :dropbox])
+    before { allow(File).to receive(:read).and_return(file_config) }
+
+    it 'has 2 providers' do
+      expect(browser.providers.keys).to eq([:file_system, :dropbox])
     end
 
-    it "should use the file configuration" do
-      expect(subject.providers[:dropbox].config[:app_key]).to eq('FileConfigKey')
+    it 'uses the file configuration' do
+      expect(browser.providers[:dropbox].config[:app_key]).to eq('FileConfigKey')
     end
   end
 
-  describe "global config" do
-    before(:each) { BrowseEverything.configure(global_config) }
-    subject { BrowseEverything::Browser.new(url_options) }
+  describe 'global config' do
+    let(:browser) { described_class.new(url_options) }
 
-    it "should have 2 providers" do
-      expect(subject.providers.keys).to eq([:file_system, :dropbox])
+    before { BrowseEverything.configure(global_config) }
+
+    it 'has 2 providers' do
+      expect(browser.providers.keys).to eq([:file_system, :dropbox])
     end
 
-    it "should use the global configuration" do
-      expect(subject.providers[:dropbox].config[:app_key]).to eq('GlobalConfigKey')
-    end
-  end
-
-  describe "local config" do
-    subject { BrowseEverything::Browser.new(local_config) }
-
-    it "should have 2 providers" do
-      expect(subject.providers.keys).to eq([:file_system, :dropbox])
-    end
-
-    it "should use the local configuration" do
-      expect(subject.providers[:dropbox].config[:app_key]).to eq('LocalConfigKey')
+    it 'uses the global configuration' do
+      expect(browser.providers[:dropbox].config[:app_key]).to eq('GlobalConfigKey')
     end
   end
 
-  describe "unknown provider" do
-    subject {
-      BrowseEverything::Browser.new(local_config.merge(foo: { key: 'bar', secret: 'baz' }))
-    }
+  describe 'local config' do
+    let(:browser) { described_class.new(local_config) }
 
-    it "should complain but continue" do
-      allow(Rails.logger).to receive(:warn).with('Unknown provider: foo')
-      expect(subject.providers.keys).to eq([:file_system, :dropbox])
+    it 'has 2 providers' do
+      expect(browser.providers.keys).to eq([:file_system, :dropbox])
+    end
+
+    it 'uses the local configuration' do
+      expect(browser.providers[:dropbox].config[:app_key]).to eq('LocalConfigKey')
+    end
+  end
+
+  describe 'unknown provider' do
+    let(:browser) do
+      described_class.new(local_config.merge(foo: { key: 'bar', secret: 'baz' }))
+    end
+
+    it 'complains but continue' do
+      expect(Rails.logger).to receive(:warn).with('Unknown provider: foo')
+      expect(browser.providers.keys).to eq([:file_system, :dropbox])
     end
   end
 end
