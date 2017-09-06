@@ -18,3 +18,7 @@
 #   :app_secret: YOUR_AWS_S3_SECRET # explicitly here, or left out to use system-configured
 #   :region: YOUR_AWS_S3_REGION     # defaults.
 #   See https://aws.amazon.com/blogs/security/a-new-and-standardized-way-to-manage-credentials-in-the-aws-sdks/
+# kaltura:
+#   :partner_id: YOUR_KLATURA_PARTNER_ID
+#   :administrator_secret: YOUR_KALTURA_ADMINSTRATOR_SECRET
+#   :service_url: YOUR_SERVICE_URL

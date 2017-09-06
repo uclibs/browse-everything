@@ -30,6 +30,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'signet'
   spec.add_dependency 'httparty'
   spec.add_dependency 'aws-sdk-s3'
+  spec.add_dependency 'kaltura'
   spec.add_development_dependency 'rspec', '~> 3.0'
   spec.add_development_dependency 'rspec-rails'
   spec.add_development_dependency 'rspec-its'
@@ -48,4 +49,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'jasmine', '~> 2.3'
   spec.add_development_dependency 'coveralls'
   spec.add_development_dependency 'poltergeist', '~> 1.10'
+  spec.add_development_dependency 'rack'
 end
