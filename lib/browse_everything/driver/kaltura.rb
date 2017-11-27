@@ -15,10 +15,17 @@ module BrowseEverything
 
       def contents(path='')
         result = []
-        @options = { :filter => { :creatorIdEqual => $current_user, :orderBy => "+name"  }, :pager => {:pageSize => 1000}  }
-        @session = ::Kaltura::Session.start
+        @options = { :filter => { :creatorIdEqual => $kaltura_user, :orderBy => "+name"  }, :pager => {:pageSize => 1000}  }
         begin
           @@entries = ::Kaltura::MediaEntry.list(@options)
+
+          #  This is necessary to check the structure of what is being returned by Kaltura ruby library.  
+          #  The library was returning different data depending on the number of entries in Kaltura.
+
+          if @@entries.first.count == 2
+            structure_transform
+          end
+
           @@entries.each do |item|
             next if item.downloadUrl.nil?
             item.location = item.downloadUrl.sub('https:', 'kaltura:')
@@ -50,6 +57,13 @@ module BrowseEverything
 
       def authorized?
         true
+      end
+
+      def structure_transform
+         val = @@entries.to_h
+         @@entries = Hashie::Mash.new(val)
+         @@entries.extend(::Kaltura::Extensions::Mash)
+         @@entries = [@@entries]
       end
 
     end
