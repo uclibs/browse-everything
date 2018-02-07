@@ -8,13 +8,15 @@ class BrowseEverythingController < ActionController::Base
 
   after_action { session["#{provider_name}_token"] = provider.token unless provider.nil? }
 
+  # The $current_user empty search was returning all the values.
+
   def index
     if browser.providers['kaltura']
       inst_domain = warden.user.email.split("@")[1].last(6)
       if inst_domain == 'uc.edu'
-        $current_user = warden.user.email.split("@")[0]
+        $kaltura_user = warden.user.email.split("@")[0]
       else
-        $current_user
+        $kaltura_user = 'INVALID USER'
       end
 
     end
