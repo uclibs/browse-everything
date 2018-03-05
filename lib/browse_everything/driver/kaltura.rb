@@ -16,6 +16,9 @@ module BrowseEverything
       def contents(path='')
         result = []
         @options = { :filter => { :creatorIdEqual => $kaltura_user, :orderBy => "+name"  }, :pager => {:pageSize => 1000}  }
+
+        @session = ::Kaltura::Session.start
+
         begin
           @@entries = ::Kaltura::MediaEntry.list(@options)
 
